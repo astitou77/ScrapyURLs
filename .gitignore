@@ -1,5 +1,6 @@
 # ignore anything in the Python virtual env. directory 'venv' - used in MBA M2 MacOS
 venv/
+.venv/
 
 # ignore logs
 *.log
