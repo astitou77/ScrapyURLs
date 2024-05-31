@@ -9,6 +9,6 @@ class IetfSpider(scrapy.Spider):
     def parse(self, response):
         # rfc = response.xpath('//span[@class="rfc-no"]//get()')
         # title = response.css("span.title::text").get()
-        description = response.xpath('//div[@class="row wb-eqht-grd"]//h3//a/text()').get()
+        description = response.xpath('//div[@class="row wb-eqht-grd"]//h3//a/text()').getall()
 
         yield {'description': description}
