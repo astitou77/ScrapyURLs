@@ -8,16 +8,24 @@ class MyspiderSpider(CrawlSpider):
     # allowed_domains = ["localhost:700"]
     start_urls = ["http://localhost:700/index.html"]
     custom_settings = {
-        'DEPTH_LIMIT': 2,  # Limit the depth to 1
+        'DEPTH_LIMIT': 4,  # Limit the depth to 1
     }
+
+    # Dictionary to hold the parent-child relationships
+    results = {}
 
     rules = (
         Rule(
             # allow=('\/.*',), 
-            LinkExtractor(restrict_css='div.mwsbodytext ul li'), 
-            callback='parse_item', 
-            follow=True),
+            LinkExtractor(restrict_css='div.mwsbodytext ul li'), # Extract links within specified CSS selector
+            callback='parse_item', # Process each link with this method
+            follow=True
+        ),
     )
+
+    def process_request(self, request, response):
+        request.meta['errback'] = self.handle_error
+        pass
 
     def parse_item(self, response):
         # Extract all links from the response
