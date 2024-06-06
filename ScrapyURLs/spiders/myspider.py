@@ -4,8 +4,32 @@ from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 
 class MyspiderSpider(CrawlSpider):
-    # Dictionary to hold the parent-child relationships
-    results = {}
+
+    # PREDEFINED ATTRIBUTE
+    # 'name' : identify the spider when running it from the command line
+    # --------------------------------------------------------------------------------------------------
+    name = "myspider"
+
+    # PREDEFINED ATTRIBUTE
+    # 'start_urls' : A list of URLs to start crawling from. 
+    #                If start_requests is not defined, Scrapy generates requests for these URLs.
+    # --------------------------------------------------------------------------------------------------
+    start_urls = ["http://localhost:700/index.html"]
+
+    # PREDEFINED ATTRIBUTE
+    # 'allowed_domains' : A list of domains that the spider is allowed to crawl (download HTML content). 
+    #                     Requests to URLs outside these domains will be ignored.
+    # --------------------------------------------------------------------------------------------------
+    allowed_domains = ["localhost"]
+
+    # PREDEFINED ATTRIBUTE
+    # 'custom_settings' : A dictionary of settings specific to this spider. 
+    #                    These settings override the project-wide settings.
+    # --------------------------------------------------------------------------------------------------
+    custom_settings = {
+        'DEPTH_LIMIT': 0,  # Limit the depth to 1
+        # 'USER_AGENT': 'my-custom-user-agent',
+    }
 
     # PREDEFINED ATTRIBUTE - for 'CrawlSpider' - not 'scrapy.Spider'
     # 'rule' : Defines a set of rules to follow links and extract data. 
@@ -23,49 +47,26 @@ class MyspiderSpider(CrawlSpider):
     # --------------------------------------------------------------------------------------------------
     rules = (
         Rule(
-            # allow=('\/.*',), 
-            LinkExtractor(restrict_css='div.mwsbodytext ul li a'), # Extract links within specified CSS selector
+            # start_requests='start_requests',  # default function, generates HTTP 'Requests' from start_urls[]
+            LinkExtractor(restrict_css='div'), # Extract links within specified CSS selector  # allow=('\/.*',), 
             callback='parse_link', # Process each link with this method
-            # errback='parse_err_link',
-            follow=False,
+            errback='parse_err_link',
+            follow=True,
             process_request='process_request'  # Modify each (url extracted) request before sending (aka Crawling them)
         ),
     )
 
-    # PREDEFINED ATTRIBUTE
-    # 'name' : identify the spider when running it from the command line
-    # --------------------------------------------------------------------------------------------------
-    name = "myspider"
-
-    # PREDEFINED ATTRIBUTE
-    # 'start_urls' : A list of URLs to start crawling from. 
-    #                If start_requests is not defined, Scrapy generates requests for these URLs.
-    # --------------------------------------------------------------------------------------------------
-    start_urls = ["http://localhost:700/index.html"]
-
-    # PREDEFINED ATTRIBUTE
-    # 'allowed_domains' : A list of domains that the spider is allowed to crawl (download HTML content). 
-    #                     Requests to URLs outside these domains will be ignored.
-    # --------------------------------------------------------------------------------------------------
-    # allowed_domains = ["localhost:700"]
-
-    # PREDEFINED ATTRIBUTE
-    # 'custom_settings' : A dictionary of settings specific to this spider. 
-    #                    These settings override the project-wide settings.
-    # --------------------------------------------------------------------------------------------------
-    custom_settings = {
-        'DEPTH_LIMIT': 1,  # Limit the depth to 1
-        # 'USER_AGENT': 'my-custom-user-agent',
-    }
+    # Dictionary to hold the parent-child relationships of URLs Scraped from Crawled URLs
+    results = {}
 
 
     # PREDEFINED METHOD
     # 'start_requests' : Generates the initial requests to begin the crawling process. 
     #                    If not defined, Scrapy uses the start_urls attribute to create these requests.
     # --------------------------------------------------------------------------------------------------
-    def start_requests(self):
+    def start_requests_NOT_USED(self):
         for url in self.start_urls:
-            print('start_requests', 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')
+            print('start_requests', '0000000000000000000000000000000000000000000000000000000000000')
             print(url)
 
             # PREDEFINED
@@ -92,17 +93,15 @@ class MyspiderSpider(CrawlSpider):
             # ------------------------------------------------------------------------------------------
             yield scrapy.Request(url, callback=self.parse_link)
 
-
+    # PREDEFINED METHOD
+    # process_request: process each HTTP 'Request' from 'start_requests' before attempting to get a 'Response'
     def process_request(self, request, response):
-        print('\nprocess_request', 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+        print('\nprocess_request', '1111111111111111111111111111111111111111111111111111111111111')
         print(request.url, '\n', request.meta)
-        request.meta['errback'] = self.handle_error   # what is meta 'errback' ? default recognized by scrapy ?
+        request.meta['errback'] = self.parse_err_link   # what is meta 'errback' ? default recognized by scrapy ?
         print(request.url, '\n', request.meta, 'zzzzz\n')
         return request
-
-    def handle_error(self, failure):
-        pass
-
+    
     # PREDEFINED METHOD
     # parse: The default callback method for requests. If not otherwise specified, 
     #        Scrapy will use this method to handle responses. 
@@ -112,7 +111,7 @@ class MyspiderSpider(CrawlSpider):
         parent_url = response.meta.get('parent_url', 'root')
         current_url = response.url
 
-        print("\nparse_link aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        print("\nparse_link 2222222222222222222222222222222222222222222222222222222222222")
         print(parent_url, current_url)
         # response.meta
         # {'rule': 0, 'link_text': 'Homepage, Link 3', 'depth': 1, 'download_timeout': 180.0, 'download_slot': 'localhost', 'download_latency': 0.00288}
@@ -131,6 +130,7 @@ class MyspiderSpider(CrawlSpider):
                 }
                 # ask chatGPT to save 'referer' and parent-child ; Crawled (for URLs) vs. Scraped (data requested)
 
+
     # PREDEFINED METHOD
     # 'errback' : Error handling method for requests. 
     #             If an error occurs during the processing of a request, 
@@ -138,6 +138,10 @@ class MyspiderSpider(CrawlSpider):
     # --------------------------------------------------------------------------------------------------
     # def errback(self, failure):
     #     pass
+
+    def parse_err_link(self, failure):
+        pass
+
 
     # PREDEFINED METHOD
     # 'closed' : Called when the spider is closed. 
