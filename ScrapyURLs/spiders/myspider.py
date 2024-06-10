@@ -97,7 +97,7 @@ class MyspiderSpider(CrawlSpider):
     # process_request: process each HTTP 'Request' from 'start_requests' before attempting to get a 'Response'
     def process_request(self, request, response):
         print('\nprocess_request', '1111111111111111111111111111111111111111111111111111111111111')
-        print(request.url, '\n', request.meta)
+        # print(request.url, '\n', request.meta)   # request.meta.link_text
         request.meta['errback'] = self.parse_err_link   # what is meta 'errback' ? default recognized by scrapy ?
         print(request.url, '\n', request.meta, 'zzzzz\n')
         return request
@@ -121,12 +121,29 @@ class MyspiderSpider(CrawlSpider):
         # Extract all links from the response
         links = response.css('a::attr(href)').getall()    # extract() vs. getall() ??
         for link in links:
+            # Check if the URL is absolute or relative and create a proper URL
             full_url = response.urljoin(link)
+            
+            # Find the section containing references
+            references_section = response.xpath("//h2[contains(., '7. References')]/following-sibling::ul")
+
+            # Select all 'ul > li' items and extract their text
+            list_items = response.css('ul > li::text').extract()
+            # Select all 'ul > li' items and extract their text
+            list_items = response.xpath('//ul/li/text()').extract()
+            list_items = response.xpath('//ul/li')
+
+            print('\nfull_url\n', full_url, '\nzzzzzzzzzzzzzzzzzaaaaaaaaaaaa\n', response.meta)
             # Check if the link is external (outside 'mysite.com')
+
+            # To skip anchor links that direct to the same page
+            # if href and not href.startswith('#'):
+            
             if not link.startswith('http://localhost:700'):
                 # Yield a dictionary with the external URL and status code
                 yield {
-                    'urls_inside': full_url
+                    'status': response.status,
+                    response.url: full_url,
                 }
                 # ask chatGPT to save 'referer' and parent-child ; Crawled (for URLs) vs. Scraped (data requested)
 
@@ -140,6 +157,8 @@ class MyspiderSpider(CrawlSpider):
     #     pass
 
     def parse_err_link(self, failure):
+        print("\nparse_error 3333333333333333333333333333333333333333333333333333333333333")
+        print(failure.status, failure.url)
         pass
 
 
